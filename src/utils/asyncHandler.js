@@ -10,7 +10,7 @@
 // };
 
 const asyncHandler = (requestHandler) => {
-  return async (req, res, next) => {
+   async (req, res, next) => {
     return await Promise.resolve(requestHandler(req, res, next)).catch(
       (error) => next(error)
     );
