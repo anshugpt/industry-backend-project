@@ -1,7 +1,7 @@
 import asyncHandler from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/ApiError.js";
 import { User } from "../models/user.model.js";
-import { uploadOnCloudinary } from "../utils/cloudinary.js";
+import { deleteImageOnCloudinary, uploadOnCloudinary } from "../utils/cloudinary.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import jwt from "jsonwebtoken";
 
@@ -268,8 +268,19 @@ const updateUserAvatar = asyncHandler(async (req, res) => {
     throw new ApiError(400, "Error while uploading avatar on cloud");
   }
 
+  // get the user for old image url and delete
+  const user = await User.findById(req.user._id);
+  if(!user){
+    throw new ApiError(400, "User not found");
+  }
+
+  if (user.avatar) {
+    const publicId = user.avatar.split("/").pop().split(".")[0]; // Extract Cloudinary public ID
+    await deleteImageOnCloudinary(publicId);
+  }
+
   // get the user and update avatar path
-  const user = await User.findByIdAndUpdate(
+  const updatedUser = await User.findByIdAndUpdate(
     req.user?._id,
     {
       $set: {
@@ -284,7 +295,7 @@ const updateUserAvatar = asyncHandler(async (req, res) => {
   // return res
   return res
     .status(200)
-    .json(new ApiResponse(200, user, "Avatar updated successfully"));
+    .json(new ApiResponse(200, updatedUser, "Avatar updated successfully"));
 });
 
 const updateUserCoverImage = asyncHandler(async (req, res) => {
