@@ -32,7 +32,7 @@ const imageFileFilter = (req, file, cb) => {
   }
 };
 
-const fileFilter = (req, file, cb) => {
+const videoFileFilter = (req, file, cb) => {
   const allowedTypes = /mp4|mov|avi|mkv/;
   const ext = path.extname(file.originalname).toLowerCase();
   if (allowedTypes.test(ext)) {
@@ -48,5 +48,5 @@ export const uploadImage = multer({
 });
 export const uploadVideo = multer({
   storage: videoStorage,
-  fileFilter: fileFilter,
+  fileFilter: videoFileFilter,
 });
