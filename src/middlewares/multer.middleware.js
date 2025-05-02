@@ -1,4 +1,5 @@
 import multer from "multer";
+const path = require("path");
 
 const imageStorage = multer.diskStorage({
   destination: function (req, file, cb) {
