@@ -42,6 +42,35 @@ const videoFileFilter = (req, file, cb) => {
   }
 };
 
+const videoAndImageStorage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, "./public/temp");
+  },
+  filename: function (req, file, cb) {
+    cb(null, file.fieldname + "-" + Date.now());
+  },
+});
+
+const videoAndImageFileFilter = (req, file, cb) => {
+  const imageTypes = /jpeg|jpg|png|gif|webp/;
+  const videoTypes = /mp4|mov|avi|mkv/;
+  const ext = path.extname(file.originalname).toLowerCase();
+  const mime = file.mimetype;
+
+  if (
+    (file.fieldname === "image" &&
+      imageTypes.test(ext) &&
+      imageTypes.test(mime)) ||
+    (file.fieldname === "video" &&
+      videoTypes.test(ext) &&
+      videoTypes.test(mime))
+  ) {
+    cb(null, true);
+  } else {
+    cb(new Error("Invalid file type"), false);
+  }
+};
+
 export const uploadImage = multer({
   storage: imageStorage,
   fileFilter: imageFileFilter,
@@ -49,4 +78,10 @@ export const uploadImage = multer({
 export const uploadVideo = multer({
   storage: videoStorage,
   fileFilter: videoFileFilter,
+});
+
+export const uploadVideoAndImage = multer({
+  storage: videoAndImageStorage,
+  fileFilter: videoAndImageFileFilter,
+  limits: { fileSize: 100 * 1024 * 1024 }, // optional: 100MB limit
 });
