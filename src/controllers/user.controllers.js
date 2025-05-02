@@ -463,6 +463,16 @@ const getUserWatchHistory = asyncHandler(async (req, res) => {
     },
   ]);
 
+  // check if user has watch history or not
+  if (!user?.length) {
+    throw new ApiError(404, "User not found");
+  }
+  if (!user[0].watchHistory?.length) {
+    return res
+      .status(200)
+      .json(new ApiResponse(200, [], "User watch history is empty"));
+  }
+
   return res
     .status(200)
     .json(
