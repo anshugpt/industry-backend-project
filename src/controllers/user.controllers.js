@@ -298,7 +298,12 @@ const updateUserAvatar = asyncHandler(async (req, res) => {
     {
       new: true,
     }
-  ).select("-password");
+  ).select("-password -refreshToken");
+
+  // check the user
+  if(!updatedUser){
+    throw new ApiError(404, "User not found");
+  }
 
   // return res
   return res
