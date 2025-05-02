@@ -253,7 +253,7 @@ const updateAccountDetails = asyncHandler(async (req, res) => {
   ).select("-password -refreshToken");
 
   // check the user
-  if(!user){
+  if (!user) {
     throw new ApiError(404, "User not found");
   }
 
@@ -301,7 +301,7 @@ const updateUserAvatar = asyncHandler(async (req, res) => {
   ).select("-password -refreshToken");
 
   // check the user
-  if(!updatedUser){
+  if (!updatedUser) {
     throw new ApiError(404, "User not found");
   }
 
@@ -335,7 +335,12 @@ const updateUserCoverImage = asyncHandler(async (req, res) => {
     {
       new: true,
     }
-  ).select("-password");
+  ).select("-password -refreshToken");
+
+  // check the user
+  if (!user) {
+    throw new ApiError(404, "User not found");
+  }
 
   // return res
   return res
