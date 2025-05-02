@@ -250,7 +250,12 @@ const updateAccountDetails = asyncHandler(async (req, res) => {
     req.user?._id,
     { $set: { fullName, email } },
     { new: true }
-  ).select("-password");
+  ).select("-password -refreshToken");
+
+  // check the user
+  if(!user){
+    throw new ApiError(404, "User not found");
+  }
 
   // return res
   return res
