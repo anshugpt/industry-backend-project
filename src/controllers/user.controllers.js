@@ -43,8 +43,8 @@ const registerUser = asyncHandler(async (req, res) => {
   // check for files - avatar, cover image
   const avatarLocalPath = req.files?.avatar[0]?.path;
   const coverImageLocalPath = req.files?.coverImage[0]?.path;
-  if (!avatarLocalPath) {
-    throw new ApiError(404, "Avatar is needed");
+  if (!avatarLocalPath || !coverImageLocalPath) {
+    throw new ApiError(404, "Avatar or cover image is needed");
   }
   // upload to cloudinary - avatar, cover image
   const avatar = await uploadOnCloudinary(avatarLocalPath);
@@ -52,13 +52,13 @@ const registerUser = asyncHandler(async (req, res) => {
   if (!avatar) {
     throw new ApiError(500, "Avatar did't get uploaded to cloud");
   }
-  // make new entry in the db\
+  // make new entry in the db
   const newUser = await User.create({
     userName: userName.toLowerCase(),
     email,
     password,
     fullName,
-    avatar: avatar.url,
+    avatar: avatar.url || "",
     coverImage: coverImage?.url || "",
   });
   // remove password and refresh token from the returned response
