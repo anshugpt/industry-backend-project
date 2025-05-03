@@ -228,4 +228,42 @@ const deleteVideo = asyncHandler(async (req, res) => {
   res.status(200).json(new ApiResponse(200, {}, "Video deleted successfully"));
 });
 
-export { uploadVideo, getVideo, deleteVideo };
+const updateThumbnail = asyncHandler(async (req, res) => {
+  const { videoDocumentId } = req.params;
+  const imageLocalPath = req.file?.path;
+  if (!imageLocalPath) {
+    throw new ApiError(400, "Image is required");
+  }
+  if (!videoDocumentId) {
+    throw new ApiError(400, "Video id is required");
+  }
+  const video = await Video.findById(videoDocumentId).select("thumbnail -_id");
+  if (!video) {
+    throw new ApiError(404, "Video not found");
+  }
+  const thumbnailId = video.thumbnail.split("/").pop().split(".")[0];
+  await deleteImageOnCloudinary(thumbnailId);
+  const thumbnailCloudinaryUrl = await uploadOnCloudinary(imageLocalPath);
+  if (!thumbnailCloudinaryUrl) {
+    throw new ApiError(500, "Image upload failed");
+  }
+  const updatedVideo = await Video.findByIdAndUpdate(
+    videoDocumentId,
+    {
+      $set: {
+        thumbnail: thumbnailCloudinaryUrl?.url,
+      },
+    },
+    {
+      new: true,
+    }
+  );
+  if (!updatedVideo) {
+    throw new ApiError(500, "Video update failed");
+  }
+  res
+    .status(200)
+    .json(new ApiResponse(200, updatedVideo, "Thumbnail updated successfully"));
+});
+
+export { uploadVideo, getVideo, deleteVideo, updateThumbnail };
