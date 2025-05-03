@@ -51,6 +51,7 @@ const uploadVideo = asyncHandler(async (req, res) => {
 const getVideo = asyncHandler(async (req, res) => {
   // get video _id by params
   // write aggregation pipeline
+  // return the response
   const { videoId } = req.params;
   if (!videoId) {
     throw new ApiError(400, "Video id is required");
