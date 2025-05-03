@@ -25,7 +25,7 @@ const uploadOnCloudinary = async function (localFilePath) {
 
 const deleteImageOnCloudinary = async function (cloudFilePathToBeDeleted) {
   try {
-    if (!localFilePath) return null;
+    if (!cloudFilePathToBeDeleted) return null;
 
     const response = await cloudinary.uploader.destroy(
       cloudFilePathToBeDeleted
