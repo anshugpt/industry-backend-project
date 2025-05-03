@@ -2,7 +2,11 @@ import { Video } from "../models/video.model.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import asyncHandler from "../utils/asyncHandler.js";
-import { uploadOnCloudinary } from "../utils/cloudinary.js";
+import {
+  deleteImageOnCloudinary,
+  deleteVideoOnCloudinary,
+  uploadOnCloudinary,
+} from "../utils/cloudinary.js";
 const uploadVideo = asyncHandler(async (req, res) => {
   // get the data
   const videoLocalPath = req.files?.video[0]?.path;
@@ -197,4 +201,31 @@ const getVideo = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, videoDetails[0], "Video details fetched"));
 });
 
-export { uploadVideo, getVideo };
+const deleteVideo = asyncHandler(async (req, res) => {
+  const { videoDocumentId } = req.params;
+
+  if (!videoDocumentId) {
+    throw new ApiError(400, "Video id is required");
+  }
+
+  const video = await Video.findById(videoDocumentId).select(
+    "videoFile thumbnail -_id"
+  );
+
+  if (!videoFile) {
+    throw new ApiError(404, "Video not found");
+  }
+
+  let videoId = video.videoFile.split("/").pop().split(".")[0];
+  let thumbnailId = video.thumbnail.split("/").pop().split(".")[0];
+  await deleteVideoOnCloudinary(videoId);
+  await deleteImageOnCloudinary(thumbnailId);
+
+  const videoDetails = await Video.findByIdAndDelete(videoDocumentId);
+  if (!videoDetails) {
+    throw new ApiError(404, "Video not found");
+  }
+  res.status(200).json(new ApiResponse(200, {}, "Video deleted successfully"));
+});
+
+export { uploadVideo, getVideo, deleteVideo };
