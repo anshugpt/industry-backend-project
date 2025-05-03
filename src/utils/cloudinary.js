@@ -37,4 +37,19 @@ const deleteImageOnCloudinary = async function (cloudFilePathToBeDeleted) {
   }
 };
 
-export { uploadOnCloudinary, deleteImageOnCloudinary };
+const deleteVideoOnCloudinary = async function (cloudFilePathToBeDeleted) {
+  try {
+    if (!cloudFilePathToBeDeleted) return null;
+
+    const response = await cloudinary.uploader.destroy(
+      cloudFilePathToBeDeleted,
+      { resource_type: "video" }
+    );
+
+    return response;
+  } catch (error) {
+    throw new ApiError(400, "Error deleting video");
+  }
+};
+
+export { uploadOnCloudinary, deleteImageOnCloudinary, deleteVideoOnCloudinary };
