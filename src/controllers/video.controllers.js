@@ -266,4 +266,39 @@ const updateThumbnail = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, updatedVideo, "Thumbnail updated successfully"));
 });
 
-export { uploadVideo, getVideo, deleteVideo, updateThumbnail };
+const updateIsPublished = asyncHandler(async (req, res) => {
+  const { videoDocumentId } = req.params;
+  const { isPublished } = req.body;
+  if (typeof isPublished !== "boolean") {
+    throw new ApiError(400, "isPublished should be boolean");
+  }
+  if (!videoDocumentId) {
+    throw new ApiError(400, "Video id is required");
+  }
+
+  const updatedVideo = await Video.findByIdAndUpdate(
+    videoDocumentId,
+    {
+      $set: {
+        isPublished,
+      },
+    },
+    {
+      new: true,
+    }
+  );
+  if (!updatedVideo) {
+    throw new ApiError(500, "Video update failed");
+  }
+  res
+    .status(200)
+    .json(new ApiResponse(200, updatedVideo, "Video updated successfully"));
+});
+
+export {
+  uploadVideo,
+  getVideo,
+  deleteVideo,
+  updateThumbnail,
+  updateIsPublished,
+};
