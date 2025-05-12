@@ -10,6 +10,7 @@ import {
   deleteVideo,
   updateThumbnail,
   updateIsPublished,
+  updateVideo,
 } from "../controllers/video.controllers";
 
 const router = Router();
@@ -31,3 +32,6 @@ router
 router
   .route("/:videoDocumentId/update-is-published")
   .patch(verifyJWT, updateIsPublished);
+router
+  .route("/:videoDocumentId/update-video")
+  .patch(verifyJWT, uploadVideo.single("video"), updateVideo);
