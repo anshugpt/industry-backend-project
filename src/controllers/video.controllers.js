@@ -350,6 +350,68 @@ const updateVideo = asyncHandler(async (req, res) => {
     );
 });
 
+const getAllVideo = asyncHandler(async (req, res) => {
+  // get the query
+  // convert page and limit to num
+  // make a mongo filter object
+  // match title and description with query
+  // build sort object
+  // query db with filter, pagination, sorting
+  // count total matching docs
+  // make a object of all the response data
+  // return res
+
+  const {
+    page = 1,
+    limit = 10,
+    query,
+    sortBy = "createdAt",
+    sortType = "desc",
+    userId,
+  } = req.query;
+
+  const pageNum = parseInt(page);
+  const limitNum = parseInt(limit);
+
+  const filter = {};
+
+  if (query) {
+    // Example: match title or description with query (case-insensitive)
+    filter.$or = [
+      { title: { $regex: query, $options: "i" } },
+      { description: { $regex: query, $options: "i" } },
+    ];
+  }
+
+  if (userId) {
+    filter.userId = userId;
+  }
+
+  const sort = {};
+  if (sortBy) {
+    sort[sortBy] = sortType === "asc" ? 1 : -1;
+  }
+
+  const videos = await Video.find(filter)
+    .sort(sort)
+    .skip((pageNum - 1) * limitNum)
+    .limit(limitNum);
+
+  const total = await Video.countDocuments(filter);
+
+  const allVideoDetails = {
+    page: pageNum,
+    limit: limitNum,
+    total,
+    totalPages: Math.ceil(total / limitNum),
+    data: videos,
+  };
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, allVideoDetails, "Video fetched successfully"));
+});
+
 export {
   uploadVideo,
   getVideo,
@@ -357,4 +419,5 @@ export {
   updateThumbnail,
   updateIsPublished,
   updateVideo,
+  getAllVideo,
 };
