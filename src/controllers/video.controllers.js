@@ -295,10 +295,66 @@ const updateIsPublished = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, updatedVideo, "Video updated successfully"));
 });
 
+const updateVideo = asyncHandler(async (req, res) => {
+  // get videoDocumentId from params
+  // get new video from file
+  // get the old video file path by DB call
+  // upload the new video and delete the old video on cloud
+  // find the video and update it with the new video and get the updated document
+  // return the res with updated document
+  const { videoDocumentId } = req.params;
+  const video = req.file;
+  if (!video) {
+    throw new ApiError(404, "updated video file is required");
+  }
+
+  const oldVideoCloudPath =
+    await Video.findById(videoDocumentId).select("videoFile -_id");
+  if (!oldVideoCloudPath) {
+    throw new ApiError(404, "No video found to update");
+  }
+
+  const oldVideoFile = oldVideoCloudPath.videoFile
+    .split("/")
+    .pop()
+    .split(".")[0];
+  const newVideoCloudPath = await uploadOnCloudinary(video);
+  await deleteVideoOnCloudinary(oldVideoFile);
+  if (!newVideoCloudPath) {
+    throw new ApiError(500, "Failed to upload updated video on cloud");
+  }
+
+  const updatedVideoDetails = await Video.findByIdAndUpdate(
+    videoDocumentId,
+    {
+      $set: {
+        videoFile: newVideoCloudPath,
+      },
+    },
+    {
+      new: true,
+    }
+  );
+  if (!updatedVideoDetails) {
+    throw new ApiError(500, "Something wrong while updating the video");
+  }
+
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(
+        200,
+        updatedVideoDetails,
+        "Video get updated successfully"
+      )
+    );
+});
+
 export {
   uploadVideo,
   getVideo,
   deleteVideo,
   updateThumbnail,
   updateIsPublished,
+  updateVideo,
 };
