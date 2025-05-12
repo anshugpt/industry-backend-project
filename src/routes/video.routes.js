@@ -11,6 +11,7 @@ import {
   updateThumbnail,
   updateIsPublished,
   updateVideo,
+  getAllVideo,
 } from "../controllers/video.controllers";
 
 const router = Router();
@@ -35,3 +36,4 @@ router
 router
   .route("/:videoDocumentId/update-video")
   .patch(verifyJWT, uploadVideo.single("video"), updateVideo);
+router.route("/get-all-video").get(verifyJWT, getAllVideo);
