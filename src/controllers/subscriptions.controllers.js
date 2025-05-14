@@ -78,7 +78,7 @@ const getUserChannelSubscribers = asyncHandler(async (req, res) => {
       },
     },
   ]);
-  if (!subscriberList) {
+  if (subscriberList.length === 0) {
     throw new ApiError(400, "Can't find subscriber list");
   }
 
@@ -93,4 +93,61 @@ const getUserChannelSubscribers = asyncHandler(async (req, res) => {
     );
 });
 
-export { toggleSubscription, getUserChannelSubscribers };
+const getSubscribedChannels = asyncHandler(async (req, res) => {
+  const { subscriberId } = req.params;
+  if (!subscriberId) {
+    throw new ApiError(400, "Need subscriber Id");
+  }
+  const listOfSubscribedChannel = await Subscription.aggregate([
+    {
+      $match: {
+        subscriber: new mongoose.Types.ObjectId(subscriberId),
+      },
+    },
+    {
+      $lookup: {
+        from: "users",
+        localField: "channel",
+        foreignField: "_id",
+        as: "channelInfo",
+        pipeline: [
+          {
+            $project: {
+              userName: 1,
+              avatar: 1,
+            },
+          },
+        ],
+      },
+    },
+    {
+      $addFields: {
+        channelInfo: {
+          $first: "$channelInfo",
+        },
+      },
+    },
+    {
+      $project: {
+        channelInfo: 1,
+        channel: 1,
+        subscriber: 1,
+      },
+    },
+  ]);
+  if (listOfSubscribedChannel.length === 0) {
+    throw new ApiError(400, "No list of subscribed channel found");
+  }
+
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(
+        200,
+        listOfSubscribedChannel,
+        "List of subscribed channel fetched successfully"
+      )
+    );
+});
+
+export { toggleSubscription, getUserChannelSubscribers, getSubscribedChannels };
