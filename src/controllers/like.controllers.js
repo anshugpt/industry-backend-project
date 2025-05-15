@@ -91,4 +91,40 @@ const toggleTweetLike = asyncHandler(async (req, res) => {
   }
 });
 
-export { toggleVideoLike, toggleCommentLike, toggleTweetLike };
+const getLikedVideos = asyncHandler(async (req, res) => {
+  // get all liked videos
+  const likedVideos = await Like.aggregate([
+    {
+      $match: {
+        likedBy: new mongoose.Types.ObjectId(req.user?._id),
+        video: { $ne: null },
+      },
+    },
+    {
+      $lookup: {
+        from: "videos",
+        localField: "video",
+        foreignField: "_id",
+        as: "videosDetail",
+      },
+    },
+    {
+      $addFields: {
+        videosDetail: {
+          $first: "$videosDetail",
+        },
+      },
+    },
+  ]);
+  if (likedVideos.length === 0) {
+    throw new ApiError(404, "No liked video present");
+  }
+
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(200, likedVideos, "Liked videos fetched successfully")
+    );
+});
+
+export { toggleVideoLike, toggleCommentLike, toggleTweetLike, getLikedVideos };
