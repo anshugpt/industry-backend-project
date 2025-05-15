@@ -2,13 +2,13 @@ import asyncHandler from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { Subscription } from "../models/subscriptions.model.js";
-import mongoose from "mongoose";
+import mongoose, { isValidObjectId } from "mongoose";
 
 const toggleSubscription = asyncHandler(async (req, res) => {
   const { channelId } = req.params;
   const subscriberId = req.user._id;
-  if (!channelId) {
-    throw new ApiError(400, "Required channel Id");
+  if (!isValidObjectId(channelId)) {
+    throw new ApiError(400, "Required valid channel Id");
   }
 
   if (channelId === subscriberId) {
@@ -38,8 +38,8 @@ const toggleSubscription = asyncHandler(async (req, res) => {
 
 const getUserChannelSubscribers = asyncHandler(async (req, res) => {
   const { channelId } = req.params;
-  if (!channelId) {
-    throw new ApiError(400, "Required channel Id");
+  if (!isValidObjectId(channelId)) {
+    throw new ApiError(400, "Required valid channel Id");
   }
   const subscriberList = await Subscription.aggregate([
     {
@@ -95,8 +95,8 @@ const getUserChannelSubscribers = asyncHandler(async (req, res) => {
 
 const getSubscribedChannels = asyncHandler(async (req, res) => {
   const { subscriberId } = req.params;
-  if (!subscriberId) {
-    throw new ApiError(400, "Need subscriber Id");
+  if (!isValidObjectId(subscriberId)) {
+    throw new ApiError(400, "Need valid subscriber Id");
   }
   const listOfSubscribedChannel = await Subscription.aggregate([
     {
