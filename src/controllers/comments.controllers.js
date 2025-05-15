@@ -104,4 +104,38 @@ const addComment = asyncHandler(async (req, res) => {
     .json(new ApiResponse(201, newComment, "Comment created successfully"));
 });
 
-export { getVideoComments, addComment };
+const updateComment = asyncHandler(async (req, res) => {
+  const { commentId } = req.params;
+  const { updatedContent } = req.body;
+
+  if (!isValidObjectId(commentId)) {
+    throw new ApiError(400, "A valid comment ID is required");
+  }
+  if (!updatedContent) {
+    throw new ApiError(400, "Updated content is required");
+  }
+
+  const updatedComment = await Comment.findOneAndUpdate(
+    {
+      _id: commentId,
+      owner: req.user?._id,
+    },
+    {
+      $set: {
+        content: updatedContent,
+      },
+    },
+    {
+      new: true,
+    }
+  );
+  if (!updatedComment) {
+    throw new ApiError(500, "Failed to update the comment");
+  }
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, updatedComment, "Comment updated successfully"));
+});
+
+export { getVideoComments, addComment, updateComment };
