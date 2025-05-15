@@ -138,4 +138,26 @@ const updateComment = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, updatedComment, "Comment updated successfully"));
 });
 
-export { getVideoComments, addComment, updateComment };
+const deleteComment = asyncHandler(async (req, res) => {
+  const { commentId } = req.params;
+  if (!isValidObjectId(commentId)) {
+    throw new ApiError(400, "A valid comment id is required");
+  }
+  const deleteResult = await Comment.deleteOne({
+    _id: commentId,
+    owner: req.user?._id,
+  });
+
+  if (deleteResult.deletedCount === 0) {
+    throw new ApiError(
+      404,
+      "Comment not found or you're not authorized to delete it"
+    );
+  }
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, true, "Comment deleted successfully"));
+});
+
+export { getVideoComments, addComment, updateComment, deleteComment };
