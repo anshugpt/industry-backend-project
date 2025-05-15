@@ -79,4 +79,29 @@ const getVideoComments = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, commentDetails, "Comment fetched successfully"));
 });
 
-export { getVideoComments };
+const addComment = asyncHandler(async (req, res) => {
+  const { content } = req.body;
+  const { videoId } = req.params;
+  if (!content) {
+    throw new ApiError(400, "Comment content is required");
+  }
+  if (!isValidObjectId(videoId)) {
+    throw new ApiError(400, "Invalid video ID");
+  }
+
+  const newComment = await Comment.create({
+    content,
+    video: videoId,
+    owner: req.user?._id,
+  });
+
+  if (!newComment) {
+    throw new ApiError(500, "Failed to create comment");
+  }
+
+  return res
+    .status(201)
+    .json(new ApiResponse(201, newComment, "Comment created successfully"));
+});
+
+export { getVideoComments, addComment };
