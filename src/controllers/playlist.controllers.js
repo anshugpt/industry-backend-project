@@ -3,6 +3,8 @@ import { Playlist } from "../models/playlist.model.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
+import { Video } from "../models/video.model.js";
+import { application } from "express";
 
 const createPlaylist = asyncHandler(async (req, res) => {
   const { name, description } = req.body;
@@ -69,4 +71,45 @@ const getPlaylistById = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, playlist, "Playlist fetched successfully"));
 });
 
-export { createPlaylist, getUserPlaylists, getPlaylistById };
+const addVideoToPlaylist = asyncHandler(async (req, res) => {
+  const { playlistId, videoId } = req.params;
+  if (!isValidObjectId(playlistId) && !isValidObjectId(videoId)) {
+    throw new ApiError(400, "A valid playlist or video id is required");
+  }
+
+  // exist
+  const existingPlaylist = await Playlist.findById(playlistId);
+
+  if (!existingPlaylist) {
+    throw new ApiError(404, "No playlist found");
+  }
+
+  const videoExists = await Video.findById(videoId);
+  if (!videoExists) {
+    throw new ApiError(404, "Video not found");
+  }
+
+  if (existingPlaylist.videos.includes(videoId)) {
+    throw new ApiError(400, "Video already exist");
+  }
+
+  existingPlaylist.videos.push(videoId);
+  await existingPlaylist.save();
+
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(
+        200,
+        existingPlaylist,
+        "Video added to the playlist successfully"
+      )
+    );
+});
+
+export {
+  createPlaylist,
+  getUserPlaylists,
+  getPlaylistById,
+  addVideoToPlaylist,
+};
