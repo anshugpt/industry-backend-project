@@ -3,7 +3,6 @@ import asyncHandler from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { Video } from "../models/video.model.js";
-import { Like } from "../models/like.model.js";
 
 const getChannelStats = asyncHandler(async (req, res) => {
   // total views, subs, videos, likes
@@ -107,4 +106,31 @@ const getChannelStats = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, result[0], "Stats fetched successfully"));
 });
 
-export { getChannelStats };
+const getChannelVideos = asyncHandler(async (req, res) => {
+  const { channelId } = req.params;
+  if (!isValidObjectId(channelId)) {
+    throw new ApiError(400, "A valid channel ID is required");
+  }
+
+  const videos = await Video.aggregate([
+    {
+      $match: {
+        owner: new mongoose.Types.ObjectId(channelId),
+      },
+    },
+    {
+      $sort: {
+        createdAt: -1,
+      },
+    },
+  ]);
+  if (videos.length === 0) {
+    throw new ApiError(404, "Videos not found");
+  }
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, videos, "Videos fetched successfully"));
+});
+
+export { getChannelStats, getChannelVideos };
